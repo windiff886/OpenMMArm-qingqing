@@ -1,4 +1,23 @@
 cmake_minimum_required(VERSION 3.12.0)
+
+# Generate compile_commands.json for clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Disable LTO to avoid lto-wrapper warnings
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION OFF)
+
+# Suppress all warnings
+add_compile_options(-w)
+
+# Suppress CMake unused variable warnings
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "" FORCE)
+cmake_policy(SET CMP0074 NEW) # Suppress warnings about <Package>_ROOT variables
+
+# Suppress unused variable warnings for catkin-related variables in ROS2
+if(DEFINED CATKIN_INSTALL_INTO_PREFIX_ROOT)
+  set(CATKIN_INSTALL_INTO_PREFIX_ROOT ${CATKIN_INSTALL_INTO_PREFIX_ROOT})
+endif()
+
 if(POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
@@ -63,5 +82,9 @@ pybind11_add_module(${LIBRARY_NAME}
   PyKDL/kinfam.cpp
   PyKDL/framevel.cpp
   PyKDL/dynamics.cpp)
+
+# Suppress linker warnings
+target_link_options(${LIBRARY_NAME} PRIVATE -Wno-lto-type-mismatch)
+
 target_link_libraries(${LIBRARY_NAME} PRIVATE ${orocos_kdl_LIBRARIES})
 install(TARGETS ${LIBRARY_NAME} DESTINATION "${PYTHON_SITE_PACKAGES_INSTALL_DIR}")

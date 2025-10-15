@@ -3,6 +3,9 @@
 #
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0.2)
 
+# Generate compile_commands.json for clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 
 ###################################################
 #                                                 #
@@ -48,6 +51,9 @@ ELSE ( NOT CMAKE_BUILD_TYPE )
 ENDIF ( NOT CMAKE_BUILD_TYPE )
 
 SET( KDL_CFLAGS "")
+
+# Suppress all warnings
+add_compile_options(-w)
 
 find_package(Eigen3 QUIET)
 if(NOT EIGEN3_FOUND)

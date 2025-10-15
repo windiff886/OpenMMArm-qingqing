@@ -1,0 +1,8 @@
+CompileFlags:
+  CompilationDatabase: build/
+  Add: 
+    - "-std=c++17"
+
+Diagnostics:
+  UnusedIncludes: None
+  MissingIncludes: Strict

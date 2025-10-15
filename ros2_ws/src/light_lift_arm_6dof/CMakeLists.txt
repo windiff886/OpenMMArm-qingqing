@@ -1,9 +1,16 @@
 cmake_minimum_required(VERSION 3.8)
 project(light_lift_arm_6dof)
 
-# if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-#   add_compile_options(-Wall -Wextra -Wpedantic)
-# endif()
+# Set C++ standard to C++17 (required for ROS2)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Generate compile_commands.json for clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Suppress all warnings
+add_compile_options(-w)
 
 
 # 查找 libserial 库

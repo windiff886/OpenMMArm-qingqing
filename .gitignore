@@ -41,6 +41,10 @@
 *.dwo
 
 
-# 忽略所有.vscode文件夹及其内容
+
 .vscode/
 .vscode/**
+
+install/
+build/
+log/
