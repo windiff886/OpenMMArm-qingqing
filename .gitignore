@@ -39,3 +39,8 @@
 
 # debug information files
 *.dwo
+
+
+# 忽略所有.vscode文件夹及其内容
+.vscode/
+.vscode/**
