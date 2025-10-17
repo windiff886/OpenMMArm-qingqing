@@ -8,10 +8,6 @@ const struct libinput_interface MouseKey::interface_ = {
 
 MouseKey::MouseKey(const char *device_path) : li_(nullptr), device_path_(device_path)
 {
-    // 创建 libinput 上下文，传入自定义的接口
-    int device_;
-    struct libinput *libinput_;
-    struct libinput_device *de;
 
     /*********************************************************************************************/
     /*********************************************************************************************/

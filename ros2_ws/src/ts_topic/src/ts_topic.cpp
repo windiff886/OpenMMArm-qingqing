@@ -51,8 +51,8 @@ class JointStatePublisher : public rclcpp::Node
 public:
   JointStatePublisher()
   : Node("joint_state_publisher"),
-  mouse("/dev/input/event12"),
-  key("/dev/input/event9")
+  mouse("/dev/input/event6"),
+  key("/dev/input/event2")
   {
     // 创建发布者，发布到 "joint_states" 话题上，队列大小为 10
     topic_control_desir_joint_state_publisher = this->create_publisher<sensor_msgs::msg::JointState>("topic_control_desir_joint_state", 10);
@@ -61,7 +61,7 @@ public:
 
     cmd_publisher = this->create_publisher<std_msgs::msg::String>("cmd_topic", 10);
 
-    // 定时器：每 1 秒调用一次回调函数
+    // 定时器：每 1ms 调用一次回调函数
     timer_ = this->create_wall_timer(1ms, std::bind(&JointStatePublisher::end_pos, this));
 
   }
@@ -175,7 +175,7 @@ private:
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
             cmd_publisher->publish(cmd_);
         }
-        if (key.last_key == 21)//t：进入阻抗
+        if (key.last_key == 21)//y：进入阻抗
         {
           cmd_.data = "Impdence";
             std::this_thread::sleep_for(std::chrono::milliseconds(100));

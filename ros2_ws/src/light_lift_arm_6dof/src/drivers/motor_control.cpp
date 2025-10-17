@@ -73,7 +73,7 @@ float MotorControl::uintToFloat(int value, float min, float max, int bits)
 
 void MotorControl::usbDataToMotorState(const std::vector<uint8_t> &data, std::vector<float> &motorState_)
 {
-    if (data.size() < 8)
+    if (data.size() < 48)
     {
         throw std::invalid_argument("Insufficient data length for motor state extraction.");
     }
@@ -85,14 +85,14 @@ void MotorControl::usbDataToMotorState(const std::vector<uint8_t> &data, std::ve
     {
         int motor_num = j*8;
         is_motor_conect = 0;
-        for (size_t i = 0; i < 8; i++)
+        for (size_t i = 1; i < 6; i++)
         {
             if(data[motor_num+i]==0) is_motor_conect += 1;
             else is_motor_conect = 0;
     
-            if(i == 7)
+            if(i == 5)
             {
-                if(is_motor_conect>6) 
+                if(is_motor_conect>=5) 
                 {
                     std::cout << "motor "<< j <<" diconnect!!!! " << std::endl;
                     return;
