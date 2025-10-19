@@ -307,7 +307,6 @@ bool  LlArm6dof::now2aim(float sta_pos[ARM_DOF], float end_pos[ARM_DOF], float n
  * 这个函数在使用话题控制机械臂时，不能调用
 */
 void LlArm6dof::update_end_effector_trajectory(float realtime){
-    realtime = realtime * 0.0;
 
     float rate = 2 , amplitude = 0.03 ;
     float amplitude_x = 0.0;
@@ -350,7 +349,7 @@ void LlArm6dof::update_end_effector_trajectory(float realtime){
    desir_end_efect_pos[5] = desir_end_efect_pos_default[5] + amplitude_rot_z*sin(rate * realtime);
 
    desir_end_efect_vel[3] = amplitude_rot_x*rate*cos(rate * realtime);
-   desir_end_efect_vel[4] = amplitude_rot_y*rate*cos(rate * realtime);
+   desir_end_efect_vel[4] = - amplitude_rot_y*rate*sin(rate * realtime);
    desir_end_efect_vel[5] = amplitude_rot_z*rate*cos(rate * realtime);
 
    desir_end_effector_frame.p = KDL::Vector(desir_end_efect_pos[0], desir_end_efect_pos[1], desir_end_efect_pos[2]);

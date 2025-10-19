@@ -1,4 +1,5 @@
 #include "communication/serial_port.h"
+#include <iomanip>
 
 namespace serialport
 {

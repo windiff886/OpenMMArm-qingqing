@@ -1,4 +1,5 @@
 #include "drivers/motor_control.h"
+#include <iomanip>
 
 
 MotorControl::MotorControl(serialport::SerialPortWrapper &s)
@@ -161,6 +162,13 @@ void MotorControl::EnableMotors(serialport::SerialPortWrapper &port)
 
     std::vector<uint8_t> frame;
     port.packFrame(enable_data, frame);
+
+    // // 打印 frame 的16进制形式
+    // std::cout << "EnableMotors frame (十六进制): ";
+    // for (size_t i = 0; i < frame.size(); i++) {
+    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(frame[i]) << " ";
+    // }
+    // std::cout << std::dec << std::endl;
 
     // 发送数据
     port.sendData(frame);
@@ -492,8 +500,8 @@ void MotorControl::real_time_motor_protection(float pos_[MOTOR_NUM], float vel_[
                 //  dengerous_cout = 0;
                 for (size_t i = 0; i < 10; i++)
                 {
-                    // DisableMotors(port);
-                    // std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    DisableMotors(port);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 }
                 bad_motor[i] = 1;
                 out_flag = true;
@@ -513,8 +521,8 @@ void MotorControl::real_time_motor_protection(float pos_[MOTOR_NUM], float vel_[
                 //  dengerous_cout = 0;
                 for (size_t i = 0; i < 10; i++)
                 {
-                    // DisableMotors(port);
-                    // std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                    DisableMotors(port);
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 }
                 bad_motor[i] = 1;
                 out_flag = true;

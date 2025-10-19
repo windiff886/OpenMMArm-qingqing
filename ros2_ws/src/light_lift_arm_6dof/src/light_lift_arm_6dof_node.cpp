@@ -100,7 +100,7 @@ public:
         //     Teach        //示教
         //     Planning       //轨迹规划
 
-        mode_ = State::AutoServo;
+        mode_ = State::Impdence;
 
         control_mode.modeTransition(mode_);
 
