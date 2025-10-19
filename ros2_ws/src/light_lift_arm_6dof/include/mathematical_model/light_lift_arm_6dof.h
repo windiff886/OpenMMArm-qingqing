@@ -29,6 +29,18 @@
 
 #define ARM_DOF 6
 
+// 轨迹参数结构体
+struct TrajectoryParams
+{
+    float rate;
+    float amplitude_x;
+    float amplitude_y;
+    float amplitude_z;
+    float amplitude_rot_x;
+    float amplitude_rot_y;
+    float amplitude_rot_z;
+};
+
 class LlArm6dof
 {
 public:
@@ -134,7 +146,7 @@ public:
 
     bool now2aim(float sta_pos[ARM_DOF], float end_pos[ARM_DOF], float now_pos[ARM_DOF], float steps, int delay);
 
-    void update_end_effector_trajectory(float realtime);
+    void update_end_effector_trajectory(float realtime, const TrajectoryParams& params);
 
     void computeInverseDynamics(const KDL::JntArray& q, const KDL::JntArray& q_dot, const KDL::JntArray& q_dotdot, KDL::JntArray& torques);
 

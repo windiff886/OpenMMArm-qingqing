@@ -28,6 +28,7 @@ message(STATUS "ts LIBSERIAL_INCLUDE_DIR: ${LIBSERIAL_INCLUDE_DIR}")
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 
 #eigen3
 find_package(Eigen3 REQUIRED)
@@ -62,6 +63,9 @@ find_package(trajectory_msgs REQUIRED)
 
 find_package(std_msgs REQUIRED)
 
+# yaml-cpp for configuration file parsing
+find_package(yaml-cpp REQUIRED)
+
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 
@@ -90,22 +94,28 @@ target_include_directories(light_lift_arm_6dof_node PUBLIC
   )
 
 ament_target_dependencies(
-  light_lift_arm_6dof_node rclcpp 
-  orocos_kdl 
-  kdl_parser 
-  urdf 
-  sensor_msgs 
+  light_lift_arm_6dof_node rclcpp
+  ament_index_cpp
+  orocos_kdl
+  kdl_parser
+  urdf
+  sensor_msgs
   tf2_ros
   std_msgs
   trajectory_msgs
   geometry_msgs
   )
 
-target_link_libraries(light_lift_arm_6dof_node ${LIBSERIAL_LIBRARY})
+target_link_libraries(light_lift_arm_6dof_node ${LIBSERIAL_LIBRARY} yaml-cpp)
 
 install(TARGETS
   light_lift_arm_6dof_node
   DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install config files
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 if(BUILD_TESTING)

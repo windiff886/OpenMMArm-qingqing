@@ -306,15 +306,15 @@ bool  LlArm6dof::now2aim(float sta_pos[ARM_DOF], float end_pos[ARM_DOF], float n
  * 输入的是时间，单位是秒
  * 这个函数在使用话题控制机械臂时，不能调用
 */
-void LlArm6dof::update_end_effector_trajectory(float realtime){
+void LlArm6dof::update_end_effector_trajectory(float realtime, const TrajectoryParams& params){
 
-    float rate = 2 , amplitude = 0.03 ;
-    float amplitude_x = 0.0;
-    float amplitude_y = 0.0;
-    float amplitude_z = 0.0;
-    float amplitude_rot_x = 0.0;
-    float amplitude_rot_y = 0.0;
-    float amplitude_rot_z = 0.0;
+    float rate = params.rate;
+    float amplitude_x = params.amplitude_x;
+    float amplitude_y = params.amplitude_y;
+    float amplitude_z = params.amplitude_z;
+    float amplitude_rot_x = params.amplitude_rot_x;
+    float amplitude_rot_y = params.amplitude_rot_y;
+    float amplitude_rot_z = params.amplitude_rot_z;
 
     //外部话题控制，要把内部轨迹更新关闭
 

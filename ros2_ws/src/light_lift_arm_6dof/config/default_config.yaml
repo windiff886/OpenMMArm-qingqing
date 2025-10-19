@@ -1,0 +1,40 @@
+# 机械臂默认控制模式配置
+# 模式对应关系:
+#   0 - AutoServo      (电机内部MIT控制)
+#   1 - ManualServo    (手动通过纯力矩控制电机)
+#   2 - Impdence       (阻抗控制)
+#   3 - Admittance     (导纳控制)
+#   4 - Gravity        (重力补偿)
+#   5 - JointAutoServo (关节自动控制)
+#   6 - Zero           (设置零点)
+#   7 - Planning       (以规划的轨迹到达期望点)
+#   8 - Gohome         (关节归零)
+
+default_mode: 2
+
+# 控制选项
+# 是否启用末端轨迹更新 (true/false)
+# 注意：当进行话题控制时，应设置为 false
+enable_end_effector_trajectory_update: true
+
+# 末端轨迹参数
+trajectory:
+  # 振荡频率系数
+  rate: 2.0
+
+  # 各轴振荡幅度（如果为0则该轴不振荡）
+  amplitude_x: 0.0
+  amplitude_y: 0.0
+  amplitude_z: 0.0
+  amplitude_rot_x: 0.0
+  amplitude_rot_y: 0.0
+  amplitude_rot_z: 0.0
+
+  # 末端执行器默认位置 [x, y, z, roll, pitch, yaw]
+  default_position:
+    x: 0.4
+    y: 0.0
+    z: 0.2
+    roll: 0.0
+    pitch: 0.0
+    yaw: 0.0

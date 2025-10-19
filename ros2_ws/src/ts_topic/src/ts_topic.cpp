@@ -3,38 +3,11 @@
 #include "geometry_msgs/msg/pose.hpp"
 #include "std_msgs/msg/string.hpp"
 #include <cmath>
+#include <chrono>
 #include "ts_topic/mousekey.h"
 
 
 using namespace std::chrono_literals;
-
-/**
- * 输入：
- *  time_step：此函数循环的间隔，单位是秒  。
- *  max_time：此函数运行的最大时间，单位是秒。
- *
- * 输出：
- *  此函数运行的时间，单位是秒。
- */
-float get_duration_realtime(float time_step, float max_time)
-{
-
-    static float loop_count = 0;
-    static float realtime = 0;
-
-    realtime = (loop_count)*time_step;
-
-    loop_count++;
-
-    if (realtime > max_time)
-    {
-        loop_count = 0;
-        realtime = 0;
-    }
-
-    return realtime;
-}
-
 
 /***
  *   cat /proc/bus/input/devices
@@ -52,7 +25,8 @@ public:
   JointStatePublisher()
   : Node("joint_state_publisher"),
   mouse("/dev/input/event6"),
-  key("/dev/input/event2")
+  key("/dev/input/event2"),
+  start_time_(std::chrono::steady_clock::now())
   {
     // 创建发布者，发布到 "joint_states" 话题上，队列大小为 10
     topic_control_desir_joint_state_publisher = this->create_publisher<sensor_msgs::msg::JointState>("topic_control_desir_joint_state", 10);
@@ -70,7 +44,7 @@ private:
 
   void joint_state()
   {
-    float realtime = get_duration_realtime(0.001, 3.1415926 * 4);
+    float realtime = get_precise_time();
 
     auto message = sensor_msgs::msg::JointState();
     // 设置时间戳
@@ -88,7 +62,7 @@ private:
 
   void end_pos()
   {
-      float realtime = get_duration_realtime(0.001, 3.1415926 * 4);
+      float realtime = get_precise_time();
 
       auto message = geometry_msgs::msg::Pose();
 
@@ -211,6 +185,16 @@ private:
 
   MouseKey mouse;
   MouseKey key;
+
+  std::chrono::steady_clock::time_point start_time_; // 程序启动时间点
+
+  // 获取从启动到现在的精确时间（秒）
+  float get_precise_time()
+  {
+      auto now = std::chrono::steady_clock::now();
+      auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start_time_);
+      return duration.count() / 1000000.0f;
+  }
 
 };
 

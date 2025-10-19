@@ -18,6 +18,9 @@
 #include "geometry_msgs/msg/wrench.hpp"
 #include "std_msgs/msg/string.hpp"
 #include <cmath>
+#include <chrono>
+#include <yaml-cpp/yaml.h>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include "mathematical_model/light_lift_arm_6dof.h"
 #include "controllers/state_machine.h"
@@ -25,37 +28,10 @@
 #include "drivers/motor_control.h"
 #include "controllers/state_machine.h"
 
-/**
- * 输入：
- *  time_step：此函数循环的间隔，单位是秒  。
- *  max_time：此函数运行的最大时间，单位是秒。
- *
- * 输出：
- *  此函数运行的时间，单位是秒。
- */
-float get_duration_realtime(float time_step, float max_time)
-{
-
-    static float loop_count = 0;
-    static float realtime = 0;
-
-    realtime = (loop_count)*time_step;
-
-    loop_count++;
-
-    if (realtime > max_time)
-    {
-        loop_count = 0;
-        realtime = 0;
-    }
-
-    return realtime;
-}
-
 class KDLTestNode : public rclcpp::Node
 {
 public:
-    KDLTestNode() : Node("kdl_test_node"), motorControl(serial)
+    KDLTestNode() : Node("kdl_test_node"), motorControl(serial), start_time_(std::chrono::steady_clock::now())
     {
         // 启动串口接收线程
         serial.startReceiving();
@@ -100,7 +76,31 @@ public:
         //     Teach        //示教
         //     Planning       //轨迹规划
 
-        mode_ = State::Impdence;
+        // 从配置文件读取默认模式
+        std::string config_path = ament_index_cpp::get_package_share_directory("light_lift_arm_6dof") + "/config/default_config.yaml";
+        YAML::Node config = YAML::LoadFile(config_path);
+        int default_mode = config["default_mode"].as<int>();
+        mode_ = static_cast<State>(default_mode);
+
+        // 读取末端轨迹更新开关
+        enable_end_effector_trajectory_update_ = config["enable_end_effector_trajectory_update"].as<bool>();
+
+        // 读取轨迹参数
+        trajectory_params_.rate = config["trajectory"]["rate"].as<float>();
+        trajectory_params_.amplitude_x = config["trajectory"]["amplitude_x"].as<float>();
+        trajectory_params_.amplitude_y = config["trajectory"]["amplitude_y"].as<float>();
+        trajectory_params_.amplitude_z = config["trajectory"]["amplitude_z"].as<float>();
+        trajectory_params_.amplitude_rot_x = config["trajectory"]["amplitude_rot_x"].as<float>();
+        trajectory_params_.amplitude_rot_y = config["trajectory"]["amplitude_rot_y"].as<float>();
+        trajectory_params_.amplitude_rot_z = config["trajectory"]["amplitude_rot_z"].as<float>();
+
+        // 读取末端执行器默认位置
+        llarm6dof.desir_end_efect_pos_default[0] = config["trajectory"]["default_position"]["x"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[1] = config["trajectory"]["default_position"]["y"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[2] = config["trajectory"]["default_position"]["z"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[3] = config["trajectory"]["default_position"]["roll"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[4] = config["trajectory"]["default_position"]["pitch"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[5] = config["trajectory"]["default_position"]["yaw"].as<float>();
 
         control_mode.modeTransition(mode_);
 
@@ -146,7 +146,7 @@ private:
     void publish_joint_states()
     {
 
-        float realtime = get_duration_realtime(0.001, 3.1415926 * 4);
+        float realtime = get_precise_time();
 
         auto parsedData = serial.getReceivedData();
 
@@ -154,14 +154,19 @@ private:
 
         motorControl.updatMotorState(motorControl.motorState); // 更新电机实时状态
 
-        // 电机保护
-        motorControl.real_time_motor_protection(motorControl.current_motor_pos, motorControl.current_motor_vel, motorControl.current_motor_tau, serial);
+        // 电机保护（Zero模式下不执行）
+        if (mode_ != State::Zero)
+        {
+            motorControl.real_time_motor_protection(motorControl.current_motor_pos, motorControl.current_motor_vel, motorControl.current_motor_tau, serial);
+        }
 
         llarm6dof.updatArmState(motorControl.current_motor_pos, motorControl.current_motor_vel, motorControl.current_motor_tau); // 更新关节实时状态
 
-        /*** 当 进 行 话 题 控 制 时 要 把 这 个 函 数 注释！！！！！！***/
-        llarm6dof.update_end_effector_trajectory(realtime);/******/
-        /**********************************************************/
+        // 末端轨迹更新（可通过配置文件控制是否执行）
+        if (enable_end_effector_trajectory_update_)
+        {
+            llarm6dof.update_end_effector_trajectory(realtime, trajectory_params_);
+        }
 
  
         /***************************************
@@ -180,7 +185,7 @@ private:
         /***************************************
          ************ 实时的计算关节速度 **********
          ***************************************/
-        if (llarm6dof.ik_solver_vel->CartToJnt(llarm6dof.desir_joint_positions, llarm6dof.desir_end_effector_dot, llarm6dof.desir_joint_velocities) >= 0)
+        if (llarm6dof.ik_solver_vel->CartToJnt(llarm6dof.current_joint_positions, llarm6dof.desir_end_effector_dot, llarm6dof.desir_joint_velocities) >= 0)
         {
             // RCLCPP_INFO(this->get_logger(), "Inverse velocity calculated using pinv solver");
         }
@@ -479,6 +484,20 @@ private:
     State mode_ ;
 
     bool set_joint_init = false;
+
+    bool enable_end_effector_trajectory_update_ = true; // 是否启用末端轨迹更新
+
+    TrajectoryParams trajectory_params_; // 轨迹参数
+
+    std::chrono::steady_clock::time_point start_time_; // 程序启动时间点
+
+    // 获取从启动到现在的精确时间（秒）
+    float get_precise_time()
+    {
+        auto now = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start_time_);
+        return duration.count() / 1000000.0f;
+    }
 };
 
 KDLTestNode *KDLTestNode::instance = nullptr;

@@ -1000,7 +1000,9 @@ void ArmState::initialize(serialport::SerialPortWrapper &port, LlArm6dof &arm, M
 
     // arm.Ik_3Dof(arm.desir_end_efect_pos, arm.desir_joint_pos);
 
-    arm.update_end_effector_trajectory(0);
+    // 使用默认轨迹参数
+    TrajectoryParams default_params = {2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    arm.update_end_effector_trajectory(0, default_params);
 
     arm.ik_solver_lma->CartToJnt(arm.current_joint_positions, arm.desir_end_effector_frame, arm.desir_joint_positions);
  
