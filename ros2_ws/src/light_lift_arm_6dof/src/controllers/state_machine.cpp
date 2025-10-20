@@ -201,24 +201,23 @@ void ArmState::autoServo(serialport::SerialPortWrapper &port, LlArm6dof &arm, Mo
         // 用期望的电机速度，提前补偿静摩擦
         // motor.compensate_static_friction_through_vel(motor.desir_motor_vel, motor.motor_control_tau);
 
-        motor.motor_pid_tau[0] = 350 * (motor.desir_motor_pos[0] - motor.current_motor_pos[0]) + 1.9 * (motor.desir_motor_vel[0] - motor.current_motor_vel[0]);
-
-        motor.motor_pid_tau[1] = 300 * (motor.desir_motor_pos[1] - motor.current_motor_pos[1]) + 2.0 * (motor.desir_motor_vel[1] - motor.current_motor_vel[1]);
-
-        motor.motor_pid_tau[2] = 280 * (motor.desir_motor_pos[2] - motor.current_motor_pos[2]) + 2.0 * (motor.desir_motor_vel[2] - motor.current_motor_vel[2]);
-
-        motor.motor_pid_tau[3] = 10 * (motor.desir_motor_pos[3] - motor.current_motor_pos[3]) + 0.6 * (motor.desir_motor_vel[3] - motor.current_motor_vel[3]);
-
-        for (size_t i = 0; i < 4; i++)
+        // 使用配置文件中的kp和kd参数计算PID控制力矩
+        for (size_t i = 0; i < 6; i++)
         {
+            motor.motor_pid_tau[i] = motor.autoservo_kp[i] * (motor.desir_motor_pos[i] - motor.current_motor_pos[i]) +
+                                     motor.autoservo_kd[i] * (motor.desir_motor_vel[i] - motor.current_motor_vel[i]);
             motor.motor_control_tau[i] += motor.motor_pid_tau[i];
         }
+
+        // 电机内部PID设置为0，使用纯力矩控制
+        float zero_kp[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        float zero_kd[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
         motor.ControlMotors(port,
                             motor.desir_motor_pos,
                             motor.desir_motor_vel,
-                            motor.kp,
-                            motor.kd,
+                            zero_kp,
+                            zero_kd,
                             motor.motor_control_tau);
 
         // motor.ControlMotors_g(port,
@@ -241,34 +240,19 @@ void ArmState::autoServo(serialport::SerialPortWrapper &port, LlArm6dof &arm, Mo
         // std::this_thread::sleep_for(std::chrono::microseconds(900)); // 微秒
     }
 }
-/// @brief 电机pid为零，仅用力矩控制，手动实现pid
-/// @param port
-/// @param arm
-/// @param motor
 void ArmState::manualServo(serialport::SerialPortWrapper &port, LlArm6dof &arm, MotorControl &motor)
 {
 
-    float kp1 = 315;
-    float kp2 = 315;
-    float kp3 = 312;
-    float kp4 = 20;
-    float kp5 = 20;
-    float kp6 = 20;
+    // 使用配置文件中的kp和kd参数（已在程序启动时从配置文件加载）
+    // motor.manualservo_kp[6] 和 motor.manualservo_kd[6]
 
-    float kd1 = 1.43;
-    float kd2 = 1.43;
-    float kd3 = 1.73;
-    float kd4 = 0.53;
-    float kd5 = 0.43;
-    float kd6 = 0.33;
-
-    // kp1 = 0;
-    // kp2 = 0;
-    // kp3 = 0;
-
-    // kd1 = 0.0;
-    // kd2 = 0.0;
-    // kd3 = 0.0;
+    // 如果需要临时修改，可以在这里覆盖
+    // motor.manualservo_kp[0] = 0;
+    // motor.manualservo_kp[1] = 0;
+    // motor.manualservo_kp[2] = 0;
+    // motor.manualservo_kd[0] = 0.0;
+    // motor.manualservo_kd[1] = 0.0;
+    // motor.manualservo_kd[2] = 0.0;
 
     // while (true)
     {
@@ -283,7 +267,7 @@ void ArmState::manualServo(serialport::SerialPortWrapper &port, LlArm6dof &arm, 
              arm.desir_joint_pos[i] = arm.desir_joint_positions(i);
              arm.desir_joint_vel[i] = arm.desir_joint_velocities(i);
          }
-  
+
 
         // 由于关节和电机的方向有可能不一致，所以要转换一下
 
@@ -296,22 +280,11 @@ void ArmState::manualServo(serialport::SerialPortWrapper &port, LlArm6dof &arm, 
                         motor.desir_motor_acc,
                         motor.motor_control_tau);
 
-        // 直接在电机空间运行pid
-
-        motor.motor_pid_tau[0] = kp1 * (motor.desir_motor_pos[0] - motor.current_motor_pos[0]) + kd1 * (motor.desir_motor_vel[0] - motor.current_motor_vel[0]);
-
-        motor.motor_pid_tau[1] = kp2 * (motor.desir_motor_pos[1] - motor.current_motor_pos[1]) + kd2 * (motor.desir_motor_vel[1] - motor.current_motor_vel[1]);
-
-        motor.motor_pid_tau[2] = kp3 * (motor.desir_motor_pos[2] - motor.current_motor_pos[2]) + kd3 * (motor.desir_motor_vel[2] - motor.current_motor_vel[2]);
-
-        motor.motor_pid_tau[3] = kp4 * (motor.desir_motor_pos[3] - motor.current_motor_pos[3]) + kd4 * (motor.desir_motor_vel[3] - motor.current_motor_vel[3]);
-
-        motor.motor_pid_tau[4] = kp5 * (motor.desir_motor_pos[4] - motor.current_motor_pos[4]) + kd5 * (motor.desir_motor_vel[4] - motor.current_motor_vel[4]);
-
-        motor.motor_pid_tau[5] = kp6 * (motor.desir_motor_pos[5] - motor.current_motor_pos[5]) + kd6 * (motor.desir_motor_vel[5] - motor.current_motor_vel[5]);
-
+        // 直接在电机空间运行pid - 使用配置文件中的参数
         for (size_t i = 0; i < 6; i++)
         {
+            motor.motor_pid_tau[i] = motor.manualservo_kp[i] * (motor.desir_motor_pos[i] - motor.current_motor_pos[i]) +
+                                     motor.manualservo_kd[i] * (motor.desir_motor_vel[i] - motor.current_motor_vel[i]);
             motor.motor_control_tau[i] += motor.motor_pid_tau[i];
         }
 
@@ -322,17 +295,15 @@ void ArmState::manualServo(serialport::SerialPortWrapper &port, LlArm6dof &arm, 
         // 用期望的电机速度，提前补偿静摩擦
         // motor.compensate_static_friction_through_vel(motor.desir_motor_vel, motor.motor_control_tau);
 
-        for (size_t i = 0; i < 6; i++)
-        {
-            motor.kp[i] = 0.0;
-            motor.kd[i] = 0.0;
-        }
+        // 电机内部PID设置为0，使用纯力矩控制
+        float zero_kp[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+        float zero_kd[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
         motor.ControlMotors(port,
                             motor.desir_motor_pos,
                             motor.desir_motor_vel,
-                            motor.kp,
-                            motor.kd,
+                            zero_kp,
+                            zero_kd,
                             motor.motor_control_tau);
 
         // std::cout << "manualServo-estimate_end_load: " << arm.current_end_efect_tau[2] << std::endl;

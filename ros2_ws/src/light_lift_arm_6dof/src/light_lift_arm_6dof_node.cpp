@@ -76,31 +76,8 @@ public:
         //     Teach        //示教
         //     Planning       //轨迹规划
 
-        // 从配置文件读取默认模式
-        std::string config_path = ament_index_cpp::get_package_share_directory("light_lift_arm_6dof") + "/config/default_config.yaml";
-        YAML::Node config = YAML::LoadFile(config_path);
-        int default_mode = config["default_mode"].as<int>();
-        mode_ = static_cast<State>(default_mode);
-
-        // 读取末端轨迹更新开关
-        enable_end_effector_trajectory_update_ = config["enable_end_effector_trajectory_update"].as<bool>();
-
-        // 读取轨迹参数
-        trajectory_params_.rate = config["trajectory"]["rate"].as<float>();
-        trajectory_params_.amplitude_x = config["trajectory"]["amplitude_x"].as<float>();
-        trajectory_params_.amplitude_y = config["trajectory"]["amplitude_y"].as<float>();
-        trajectory_params_.amplitude_z = config["trajectory"]["amplitude_z"].as<float>();
-        trajectory_params_.amplitude_rot_x = config["trajectory"]["amplitude_rot_x"].as<float>();
-        trajectory_params_.amplitude_rot_y = config["trajectory"]["amplitude_rot_y"].as<float>();
-        trajectory_params_.amplitude_rot_z = config["trajectory"]["amplitude_rot_z"].as<float>();
-
-        // 读取末端执行器默认位置
-        llarm6dof.desir_end_efect_pos_default[0] = config["trajectory"]["default_position"]["x"].as<float>();
-        llarm6dof.desir_end_efect_pos_default[1] = config["trajectory"]["default_position"]["y"].as<float>();
-        llarm6dof.desir_end_efect_pos_default[2] = config["trajectory"]["default_position"]["z"].as<float>();
-        llarm6dof.desir_end_efect_pos_default[3] = config["trajectory"]["default_position"]["roll"].as<float>();
-        llarm6dof.desir_end_efect_pos_default[4] = config["trajectory"]["default_position"]["pitch"].as<float>();
-        llarm6dof.desir_end_efect_pos_default[5] = config["trajectory"]["default_position"]["yaw"].as<float>();
+        // 加载配置文件参数
+        loadConfigParameters();
 
         control_mode.modeTransition(mode_);
 
@@ -490,6 +467,67 @@ private:
     TrajectoryParams trajectory_params_; // 轨迹参数
 
     std::chrono::steady_clock::time_point start_time_; // 程序启动时间点
+
+    // 加载配置文件参数
+    void loadConfigParameters()
+    {
+        std::string config_path = ament_index_cpp::get_package_share_directory("light_lift_arm_6dof") + "/config/default_config.yaml";
+        YAML::Node config = YAML::LoadFile(config_path);
+
+        // 读取默认模式
+        int default_mode = config["default_mode"].as<int>();
+        mode_ = static_cast<State>(default_mode);
+
+        // 读取末端轨迹更新开关
+        enable_end_effector_trajectory_update_ = config["enable_end_effector_trajectory_update"].as<bool>();
+
+        // 读取轨迹参数
+        trajectory_params_.rate = config["trajectory"]["rate"].as<float>();
+        trajectory_params_.amplitude_x = config["trajectory"]["amplitude_x"].as<float>();
+        trajectory_params_.amplitude_y = config["trajectory"]["amplitude_y"].as<float>();
+        trajectory_params_.amplitude_z = config["trajectory"]["amplitude_z"].as<float>();
+        trajectory_params_.amplitude_rot_x = config["trajectory"]["amplitude_rot_x"].as<float>();
+        trajectory_params_.amplitude_rot_y = config["trajectory"]["amplitude_rot_y"].as<float>();
+        trajectory_params_.amplitude_rot_z = config["trajectory"]["amplitude_rot_z"].as<float>();
+
+        // 读取末端执行器默认位置
+        llarm6dof.desir_end_efect_pos_default[0] = config["trajectory"]["default_position"]["x"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[1] = config["trajectory"]["default_position"]["y"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[2] = config["trajectory"]["default_position"]["z"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[3] = config["trajectory"]["default_position"]["roll"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[4] = config["trajectory"]["default_position"]["pitch"].as<float>();
+        llarm6dof.desir_end_efect_pos_default[5] = config["trajectory"]["default_position"]["yaw"].as<float>();
+
+        // 读取AutoServo模式的kp和kd参数
+        motorControl.autoservo_kp[0] = config["autoservo_control"]["kp"]["motor0"].as<float>();
+        motorControl.autoservo_kp[1] = config["autoservo_control"]["kp"]["motor1"].as<float>();
+        motorControl.autoservo_kp[2] = config["autoservo_control"]["kp"]["motor2"].as<float>();
+        motorControl.autoservo_kp[3] = config["autoservo_control"]["kp"]["motor3"].as<float>();
+        motorControl.autoservo_kp[4] = config["autoservo_control"]["kp"]["motor4"].as<float>();
+        motorControl.autoservo_kp[5] = config["autoservo_control"]["kp"]["motor5"].as<float>();
+
+        motorControl.autoservo_kd[0] = config["autoservo_control"]["kd"]["motor0"].as<float>();
+        motorControl.autoservo_kd[1] = config["autoservo_control"]["kd"]["motor1"].as<float>();
+        motorControl.autoservo_kd[2] = config["autoservo_control"]["kd"]["motor2"].as<float>();
+        motorControl.autoservo_kd[3] = config["autoservo_control"]["kd"]["motor3"].as<float>();
+        motorControl.autoservo_kd[4] = config["autoservo_control"]["kd"]["motor4"].as<float>();
+        motorControl.autoservo_kd[5] = config["autoservo_control"]["kd"]["motor5"].as<float>();
+
+        // 读取ManualServo模式的kp和kd参数
+        motorControl.manualservo_kp[0] = config["manualservo_control"]["kp"]["motor0"].as<float>();
+        motorControl.manualservo_kp[1] = config["manualservo_control"]["kp"]["motor1"].as<float>();
+        motorControl.manualservo_kp[2] = config["manualservo_control"]["kp"]["motor2"].as<float>();
+        motorControl.manualservo_kp[3] = config["manualservo_control"]["kp"]["motor3"].as<float>();
+        motorControl.manualservo_kp[4] = config["manualservo_control"]["kp"]["motor4"].as<float>();
+        motorControl.manualservo_kp[5] = config["manualservo_control"]["kp"]["motor5"].as<float>();
+
+        motorControl.manualservo_kd[0] = config["manualservo_control"]["kd"]["motor0"].as<float>();
+        motorControl.manualservo_kd[1] = config["manualservo_control"]["kd"]["motor1"].as<float>();
+        motorControl.manualservo_kd[2] = config["manualservo_control"]["kd"]["motor2"].as<float>();
+        motorControl.manualservo_kd[3] = config["manualservo_control"]["kd"]["motor3"].as<float>();
+        motorControl.manualservo_kd[4] = config["manualservo_control"]["kd"]["motor4"].as<float>();
+        motorControl.manualservo_kd[5] = config["manualservo_control"]["kd"]["motor5"].as<float>();
+    }
 
     // 获取从启动到现在的精确时间（秒）
     float get_precise_time()

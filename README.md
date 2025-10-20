@@ -5,3 +5,4 @@ This project is based on the [qingqing project](https://gitee.com/qingqing-gaq/l
 - 2025-10-17: Refined the lower-level controller information validation mechanism.
 - 2025-10-19：Fixed some minor errors
 - 2025-10-19：Add config file and get accurate time
+- 2025-10-20：Added Kp and Kd parameters for AutoServo and ManualServo models to the config file, and documented the project’s mathematical description.

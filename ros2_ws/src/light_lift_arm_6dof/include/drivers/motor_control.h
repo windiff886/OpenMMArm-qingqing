@@ -77,6 +77,14 @@ public:
     float motor_gravity_tau[MOTOR_NUM] = {0};
     float motor_control_tau[MOTOR_NUM] = {0};
 
+    // AutoServo模式专用的kp和kd参数（从配置文件读取）
+    float autoservo_kp[MOTOR_NUM] = {350.0, 300.0, 280.0, 10.0, 0.0, 0.0};  // 默认值
+    float autoservo_kd[MOTOR_NUM] = {1.9, 2.0, 2.0, 0.6, 0.0, 0.0};          // 默认值
+
+    // ManualServo模式专用的kp和kd参数（从配置文件读取）
+    float manualservo_kp[MOTOR_NUM] = {315.0, 315.0, 312.0, 20.0, 20.0, 20.0};  // 默认值
+    float manualservo_kd[MOTOR_NUM] = {1.43, 1.43, 1.73, 0.53, 0.43, 0.33};      // 默认值
+
     float static_friction_in_gravity_max[MOTOR_NUM] = { 0.08,  0.2,   0.15, 0.08,  0.2,   0.15};
     float static_friction_in_gravity_min[MOTOR_NUM] = {-0.08, -0.04, -0.05,-0.08, -0.04, -0.05};
 

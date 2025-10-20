@@ -38,3 +38,45 @@ trajectory:
     roll: 0.0
     pitch: 0.0
     yaw: 0.0
+
+# AutoServo模式控制参数
+# 这些参数用于手动PID控制，计算电机控制力矩
+autoservo_control:
+  # 位置增益 (kp) - 针对6个电机
+  kp:
+    motor0: 350.0
+    motor1: 300.0
+    motor2: 280.0
+    motor3: 10.0
+    motor4: 0.0
+    motor5: 0.0
+
+  # 速度增益 (kd) - 针对6个电机
+  kd:
+    motor0: 1.9
+    motor1: 2.0
+    motor2: 2.0
+    motor3: 0.6
+    motor4: 0.0
+    motor5: 0.0
+
+# ManualServo模式控制参数
+# 电机pid为零，仅用力矩控制，手动实现pid
+manualservo_control:
+  # 位置增益 (kp) - 针对6个电机
+  kp:
+    motor0: 315.0
+    motor1: 315.0
+    motor2: 312.0
+    motor3: 20.0
+    motor4: 20.0
+    motor5: 20.0
+
+  # 速度增益 (kd) - 针对6个电机
+  kd:
+    motor0: 1.43
+    motor1: 1.43
+    motor2: 1.73
+    motor3: 0.53
+    motor4: 0.43
+    motor5: 0.33
